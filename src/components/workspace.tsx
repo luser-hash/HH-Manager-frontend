@@ -43,7 +43,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   useEffect(() => { if (!message) return; const timer=setTimeout(()=>setMessage(''),5000); return ()=>clearTimeout(timer); },[message]);
   async function saveBooking(booking: Booking) {
     if (lock.current) throw new Error('A save is already in progress.');
-    if (problem || !ready) throw new Error('Refresh the workspace before saving.');
+    if (problem || !ready) throw new Error('Refresh your records before saving.');
     lock.current=true; setSaving(true);
     try { const id = await persistBooking(booking,bookings.find(b=>b.id===booking.id),resorts,customers); await refresh(); return id; }
     catch(e) { try { await refresh(); } catch { /* refresh exposes the connection error */ } throw e; }
@@ -51,10 +51,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }
   async function mutate<T,>(operation: () => Promise<T>): Promise<T> {
     if (lock.current) throw new Error('A save is already in progress.');
-    if (problem || !ready) throw new Error('Refresh the workspace before saving.');
+    if (problem || !ready) throw new Error('Refresh your records before saving.');
     lock.current = true; setSaving(true); let committed = false;
     try { const result = await operation(); committed = true; await refresh(); return result; }
-    catch(e) { if (committed) throw new Error('Saved successfully, but the workspace could not refresh. Close this dialog and refresh before making another change.'); setMessage(e instanceof Error ? e.message : 'The change could not be saved.'); try { await refresh(); } catch {} throw e; }
+    catch(e) { if (committed) throw new Error('Saved successfully, but the updated records could not load. Close this dialog and refresh before making another change.'); setMessage(e instanceof Error ? e.message : 'The change could not be saved.'); try { await refresh(); } catch {} throw e; }
     finally { lock.current = false; setSaving(false); }
   }
   async function logout() {
@@ -68,7 +68,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     finally {setSaving(false);}
   }
   return <Context.Provider value={{bookings,resorts,customers,user,ready,saving,problem,refresh,logout,saveBooking,mutate,notify:setMessage}}>
-    {checking ? <div className="auth-screen" role="status">Connecting to Hill Horizon Manager…</div> : !user ? <div className="auth-screen"><form className="auth-card" onSubmit={submit}><img src="/assets/logo.png" alt="Hill Horizon Tours & Travels" /><h1>Welcome back.</h1><p>Sign in with your Django account.</p><label className="field">Username<input name="username" autoComplete="username" required /></label><label className="field">Password<input name="password" type="password" autoComplete="current-password" required /></label>{problem && <p className="error" role="alert">{problem}</p>}<button className="btn" disabled={saving} type="submit">{saving ? 'Signing in…' : 'Sign in'}</button><small>Start Django on port 8000 and this frontend on port 3000. No demo bookings are loaded.</small></form></div> : children}
+    {checking ? <div className="auth-screen" role="status">Connecting to Hill Horizon Manager…</div> : !user ? <div className="auth-screen"><form className="auth-card" onSubmit={submit}><img src="/assets/logo.png" alt="Hill Horizon Tours & Travels" /><h1>Welcome back.</h1><p>Sign in to Hill Horizon Manager.</p><label className="field">Username<input name="username" autoComplete="username" required /></label><label className="field">Password<input name="password" type="password" autoComplete="current-password" required /></label>{problem && <p className="error" role="alert">{problem}</p>}<button className="btn" disabled={saving} type="submit">{saving ? 'Signing in…' : 'Sign in'}</button><small>Need help signing in? Contact your administrator.</small></form></div> : children}
     <div id="toast" className={message ? 'show' : ''} role="status" aria-live="polite">{message}</div>
   </Context.Provider>;
 }

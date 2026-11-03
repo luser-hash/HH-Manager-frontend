@@ -41,7 +41,7 @@ function CustomerForm({dialog,onClose,onSaved}:{dialog: Exclude<Dialog,{kind:'vi
     const data = dialog.kind === 'archive' ? {is_archived:!customer!.is_archived} : Object.fromEntries([...fields.map(([key]) => key),'notes'].map(key => [key,String(form.get(key) || '').trim()]));
     lock.current = true; setBusy(true); setError(''); let persisted = false;
     try { await request(`/api/v1/customers/${customer ? customer.id + '/' : ''}`,customer ? 'PATCH' : 'POST',data); persisted = true; setCommitted(true); await onSaved(); }
-    catch(e) { setError((persisted ? 'Saved successfully, but refresh failed. Close this dialog and refresh the workspace. ' : '') + messageOf(e)); }
+    catch(e) { setError((persisted ? 'Saved successfully, but refresh failed. Close this dialog and refresh your records. ' : '') + messageOf(e)); }
     finally { lock.current = false; setBusy(false); }
   }
   const archive = dialog.kind === 'archive';

@@ -97,7 +97,7 @@ function DirectoryDialog({dialog, resorts, rooms, can, onChange, onClose, onSave
     try {
       await request(`/api/v1/${resource}/${record ? record.id + '/' : ''}`, record ? 'PATCH' : 'POST', payload);
       persisted = true; setCommitted(true); await onSaved();
-    } catch (e) { setError((persisted ? 'Saved successfully, but the workspace could not refresh. Close this dialog and refresh. ' : '') + messageOf(e)); }
+    } catch (e) { setError((persisted ? 'Saved successfully, but the updated records could not load. Close this dialog and refresh. ' : '') + messageOf(e)); }
     finally { lock.current = false; setBusy(false); }
   }
   if (dialog.kind === 'archive') {

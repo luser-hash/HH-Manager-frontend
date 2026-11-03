@@ -47,7 +47,7 @@ function SeasonalRateFields({record}:{record?:unknown}) {
       <label className="field">{name} valid from<input name={`${season}_from`} type="date" required defaultValue={row?.valid_from||''}/></label>
       <label className="field">{name} last occupied night<input name={`${season}_until`} type="date" required defaultValue={row?.valid_until||''}/></label>
     </div></div>;
-  })}<p className="hint field full">Renewal notices appear in your workspace 30 days before expiry and remain visible after expiry. Rates do not renew automatically.</p></>;
+  })}<p className="hint field full">Renewal notices appear on your dashboard 30 days before expiry and remain visible after expiry. Rates do not renew automatically.</p></>;
 }
 export function SeasonalRateDetails({record}:{record?:unknown}) {
   const data=record as SeasonalProfile|undefined;

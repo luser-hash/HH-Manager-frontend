@@ -28,14 +28,14 @@ function explain(value: unknown): string {
   return 'The request could not be completed.';
 }
 export async function request<T>(path: string, method = 'GET', body?: unknown, timeoutMs = 20000): Promise<T> {
-  if (!path.startsWith('/api/')) throw new Error('Invalid API path.');
+  if (!path.startsWith('/api/')) throw new Error('This request could not be completed.');
   if (method !== 'GET' && !csrf) csrf = (await request<{csrfToken:string}>('/api/v1/auth/csrf/')).csrfToken;
   let response: Response;
   try { response = await fetch(path, {method, credentials:'same-origin', cache:'no-store', headers: { ...(body ? {'Content-Type':'application/json'} : {}), ...(method !== 'GET' ? {'X-CSRFToken':csrf} : {}) }, ...(body ? {body:JSON.stringify(body)} : {}), signal:AbortSignal.timeout(timeoutMs)}); }
-  catch { throw new ApiError('Cannot reach Django. Start the backend on port 8000 and try again. If a save timed out, refresh before retrying.', 0); }
+  catch { throw new ApiError('Unable to connect to Hill Horizon Manager. Check your connection and try again. If you were saving a change, refresh your records before retrying.', 0); }
   if (response.status === 204) return undefined as T;
   const value = await response.json().catch(() => null);
-  if (!response.ok) throw new ApiError(value ? explain(value) : `Django returned HTTP ${response.status}. Check the backend terminal.`, response.status);
+  if (!response.ok) throw new ApiError(value ? explain(value) : 'The request could not be completed. Refresh and try again. If the problem continues, contact your administrator.', response.status);
   return value as T;
 }
 export async function all<T>(path: string): Promise<T[]> {
@@ -47,7 +47,7 @@ export async function all<T>(path: string): Promise<T[]> {
     if (!page.next) break;
     const url: URL = new URL(page.next, 'http://local');
     const nextPath: string = url.pathname + url.search;
-    if (!nextPath.startsWith('/api/v1/')) throw new Error('Unexpected API pagination link.');
+    if (!nextPath.startsWith('/api/v1/')) throw new Error('Unable to load the remaining records. Refresh and try again.');
     next = nextPath;
   }
   return rows;
@@ -61,7 +61,7 @@ export async function logout() { await request('/api/v1/auth/logout/', 'POST'); 
 export const today = () => new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Dhaka',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 export const cents = (value: string | undefined) => {
   const match = /^(-?)(\d+)(?:\.(\d{1,2}))?$/.exec(value || '0');
-  if (!match) throw new Error('Invalid money value from Django.');
+  if (!match) throw new Error('An amount could not be displayed. Refresh your records and try again.');
   const n = (Number(match[2])*100 + Number((match[3] || '').padEnd(2,'0'))) * (match[1] ? -1 : 1);
   if (!Number.isSafeInteger(n)) throw new Error('Money amount exceeds safe display range.');
   return n;
